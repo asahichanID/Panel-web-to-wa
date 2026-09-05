@@ -1,0 +1,478 @@
+[
+  {
+    "question": "Kalau kehujanan terus gak mau basah, benda apa yang pertama dicari?",
+    "answer": ["payung"]
+  },
+  {
+    "question": "Yang suka ilang pas lagi buru-buru berangkat. Benda apa tuh? 😹",
+    "answer": ["kunci", "kuncirumah"]
+  },
+  {
+    "question": "Buat makan mie jangan pake tangan lah 😭 pake apa?",
+    "answer": ["garpu"]
+  },
+  {
+    "question": "Pas listrik mati, benda ini langsung jadi primadona.",
+    "answer": ["senter"]
+  },
+  {
+    "question": "Kalau mau minum ya harus pakai benda ini dulu.",
+    "answer": ["gelas"]
+  },
+  {
+    "question": "Tempat naruh baju di kamar.",
+    "answer": ["lemari", "lemaribaju"]
+  },
+  {
+    "question": "Yang dipencet terus sama bocil pas nonton TV 😹",
+    "answer": ["remote", "remotetv"]
+  },
+  {
+    "question": "Buat tidur nyenyak biasanya rebahan di atas...",
+    "answer": ["kasur"]
+  },
+  {
+    "question": "Kalau baju kusut, benda ini yang disuruh kerja.",
+    "answer": ["setrika"]
+  },
+  {
+    "question": "Yang muter-muter di atas kepala pas cuaca lagi panas.",
+    "answer": ["kipasangin", "kipas"]
+  },
+  {
+    "question": "Buat nyapu rumah, masa pake pedang 😭",
+    "answer": ["sapu"]
+  },
+  {
+    "question": "Kalau lantai masih basah habis dipel, berarti tadi pakai benda apa?",
+    "answer": ["pel"]
+  },
+  {
+    "question": "Yang sering bunyi 'kring kring' pas ada tamu.",
+    "answer": ["bel", "belrumah"]
+  },
+  {
+    "question": "Buat nyatet tugas sekolah biasanya pakai...",
+    "answer": ["pulpen", "pena", "bolpoin"]
+  },
+  {
+    "question": "Kalau pulpen salah nulis, biasanya ditemenin sama benda ini.",
+    "answer": ["tipx", "tipex"]
+  },
+  {
+    "question": "Yang dipakai buat ngapus tulisan pensil.",
+    "answer": ["penghapus"]
+  },
+  {
+    "question": "Benda panjang buat ngukur 30 cm pas pelajaran matematika.",
+    "answer": ["penggaris", "mistar"]
+  },
+  {
+    "question": "Yang dipakai motong kertas. Jangan pake gigi 😭",
+    "answer": ["gunting"]
+  },
+  {
+    "question": "Kalau mau jahit baju sobek, benda kecil ini wajib ada.",
+    "answer": ["jarum"]
+  },
+  {
+    "question": "Tempat nyimpen duit biar gak berantakan di kantong.",
+    "answer": ["dompet"]
+  },
+  {
+    "question": "Kalau HP 1%, benda ini jadi pahlawan.",
+    "answer": ["charger"]
+  },
+  {
+    "question": "Benda yang hampir semua orang pegang sebelum tidur 😹",
+    "answer": ["hp", "handphone", "ponsel"]
+  },
+  {
+    "question": "Yang dipakai buat lihat muka sendiri sebelum berangkat.",
+    "answer": ["cermin"]
+  },
+  {
+    "question": "Kalau haus di jalan, biasanya bawa air di dalam...",
+    "answer": ["botol", "tumbler"]
+  },
+  {
+    "question": "Yang bunyinya tik tok tik tok tiap detik.",
+    "answer": ["jam", "arloji"]
+  },
+  {
+    "question": "Buat nyimpen makanan biar gak cepet basi.",
+    "answer": ["kulkas", "lemaries"]
+  },
+  {
+    "question": "Yang dipakai buat masak nasi otomatis.",
+    "answer": ["ricecooker", "magiccom"]
+  },
+  {
+    "question": "Kalau mau rebus air, biasanya pakai benda ini.",
+    "answer": ["ketel", "teko"]
+  },
+  {
+    "question": "Yang dipakai buat mukul paku.",
+    "answer": ["palu", "martil"]
+  },
+  {
+    "question": "Buat muter baut plus atau minus.",
+    "answer": ["obeng", "screwdriver"]
+  },
+  {
+    "question": "Yang dipakai buat buka tutup botol kaca.",
+    "answer": ["pembukabotol"]
+  },
+  {
+    "question": "Kalau sampah numpuk ya masuknya ke benda ini.",
+    "answer": ["tempatsampah", "tongsampah"]
+  },
+  {
+    "question": "Yang dipakai buat ngepel tapi bukan sapu.",
+    "answer": ["pel"]
+  },
+  {
+    "question": "Kalau panas banget, selain kipas ada benda elektronik yang bikin adem satu ruangan.",
+    "answer": ["ac", "airconditioner"]
+  },
+  {
+    "question": "Yang dipakai buat nonton film di rumah.",
+    "answer": ["televisi", "tv"]
+  },
+  {
+    "question": "Kalau mau buka pintu tapi bendanya hilang, auto panik 😭",
+    "answer": ["kunci"]
+  },
+  {
+    "question": "Tempat duduk favorit bapak-bapak sambil ngopi.",
+    "answer": ["kursi"]
+  },
+  {
+    "question": "Kalau belajar biasanya buku ditaruh di atas benda ini.",
+    "answer": ["meja"]
+  },
+  {
+    "question": "Yang dipakai buat naruh air banyak pas nyuci.",
+    "answer": ["ember"]
+  },
+  {
+    "question": "Kalau mau jemur baju biasanya dijepit pakai benda kecil ini.",
+    "answer": ["penjepitbaju", "jepitan"]
+  },
+    {
+    "question": "Benda yang sering dipeluk bocil pas mau tidur.",
+    "answer": ["boneka"]
+  },
+  {
+    "question": "Kalau rumah bocor pas hujan, benda ini sering jadi korban nampung air.",
+    "answer": ["ember"]
+  },
+  {
+    "question": "Yang dipakai buat nyolok listrik ke stop kontak.",
+    "answer": ["steker", "colokan"]
+  },
+  {
+    "question": "Benda yang bikin colokan listrik jadi lebih banyak.",
+    "answer": ["terminal", "stopkontak"]
+  },
+  {
+    "question": "Kalau mau denger lagu tanpa ganggu orang lain, pakai benda ini.",
+    "answer": ["headset", "earphone", "headphone"]
+  },
+  {
+    "question": "Yang dipakai buat foto-foto sebelum upload ke sosmed 😹",
+    "answer": ["kamera"]
+  },
+  {
+    "question": "Benda kecil yang sering dipencet buat motret pakai HP.",
+    "answer": ["tombol"]
+  },
+  {
+    "question": "Yang dipakai buat buka pintu tapi bentuknya muter.",
+    "answer": ["gagangpintu", "kenop"]
+  },
+  {
+    "question": "Kalau mau ngebor tembok ya pakai benda ini.",
+    "answer": ["bor", "mesinbor"]
+  },
+  {
+    "question": "Benda yang dipakai buat nempelin dua kertas.",
+    "answer": ["lem"]
+  },
+  {
+    "question": "Kalau lem kurang kuat, biasanya orang pakai yang bening ini.",
+    "answer": ["lakban", "isolasi"]
+  },
+  {
+    "question": "Yang suka dipakai buat ngiket rambut.",
+    "answer": ["ikatrambut", "karetrambut"]
+  },
+  {
+    "question": "Kalau rambut kusut, benda ini langsung dicari.",
+    "answer": ["sisir"]
+  },
+  {
+    "question": "Yang dipakai buat motong kuku.",
+    "answer": ["guntingkuku"]
+  },
+  {
+    "question": "Tempat naruh sabun cair di kamar mandi.",
+    "answer": ["dispenser", "wadahsabun"]
+  },
+  {
+    "question": "Yang dipakai buat sikat gigi tiap pagi.",
+    "answer": ["sikatgigi"]
+  },
+  {
+    "question": "Kalau habis gosok gigi, pasta ini ditaruh di atas...",
+    "answer": ["sikatgigi"]
+  },
+  {
+    "question": "Yang dipakai buat nyuci piring sampai kinclong.",
+    "answer": ["spons", "sponscuci"]
+  },
+  {
+    "question": "Kalau tangan kepanasan pegang panci, biasanya pakai benda ini.",
+    "answer": ["lap", "serbet"]
+  },
+  {
+    "question": "Benda yang dipakai buat masak mie instan.",
+    "answer": ["panci"]
+  },
+  {
+    "question": "Yang dipakai buat menggoreng telur.",
+    "answer": ["wajan", "penggorengan"]
+  },
+  {
+    "question": "Benda yang dipakai buat ngaduk teh atau kopi.",
+    "answer": ["sendok"]
+  },
+  {
+    "question": "Kalau makan steak, biasanya ditemenin benda tajam ini.",
+    "answer": ["pisau"]
+  },
+  {
+    "question": "Tempat naruh nasi pas makan.",
+    "answer": ["piring"]
+  },
+  {
+    "question": "Kalau lagi piknik, makanan sering ditaruh di benda ini.",
+    "answer": ["kotakmakan", "lunchbox"]
+  },
+  {
+    "question": "Yang dipakai buat bawa buku ke sekolah. Jangan jawab tangan 😭",
+    "answer": ["tas", "ransel"]
+  },
+  {
+    "question": "Kalau malam terus nyamuk datang, benda ini suka dinyalain.",
+    "answer": ["obatnyamuk"]
+  },
+  {
+    "question": "Yang dipakai buat nyalain lilin.",
+    "answer": ["korek", "korekapi", "pemantik"]
+  },
+  {
+    "question": "Benda yang dipakai buat meniup rambut sampai kering.",
+    "answer": ["hairdryer", "pengeringrambut"]
+  },
+  {
+    "question": "Kalau mau timbang badan habis lebaran 😹 pakai apa?",
+    "answer": ["timbangan"]
+  },
+  {
+    "question": "Yang dipakai buat ngelap badan habis mandi.",
+    "answer": ["handuk"]
+  },
+  {
+    "question": "Tempat buat naruh sabun batang biar gak jatuh.",
+    "answer": ["tempatsabun"]
+  },
+  {
+    "question": "Yang dipakai buat nyimpen sepatu di rumah.",
+    "answer": ["raksepatu"]
+  },
+  {
+    "question": "Benda yang dipakai buat gantung baju di lemari.",
+    "answer": ["hanger", "gantunganbaju"]
+  },
+  {
+    "question": "Yang dipakai buat nutup botol minum.",
+    "answer": ["tutupbotol"]
+  },
+  {
+    "question": "Kalau mau lihat bintang dari jauh, biasanya pakai benda ini.",
+    "answer": ["teropong", "teleskop"]
+  },
+  {
+    "question": "Yang dipakai buat lihat benda kecil jadi kelihatan gede.",
+    "answer": ["lup", "kacapembesar"]
+  },
+  {
+    "question": "Kalau guru lagi presentasi di kelas, kadang pakai benda yang bisa nunjuk dari jauh.",
+    "answer": ["laserpointer", "pointer"]
+  },
+  {
+    "question": "Yang dipakai buat nyimpen file penting di komputer biar bisa dibawa ke mana-mana.",
+    "answer": ["flashdisk", "usb"]
+  },
+  {
+    "question": "Kalau internet rumah tiba-tiba mati, biasanya orang langsung nyalahin benda ini 😹",
+    "answer": ["router", "modem", "wifi"]
+  },
+    {
+    "question": "Kalau lagi kepanasan terus listrik hidup, biasanya langsung dinyalain.",
+    "answer": ["kipasangin", "kipas"]
+  },
+  {
+    "question": "Yang suka bunyi 'tit tit' pas dipencet di parkiran mobil.",
+    "answer": ["remotemobil", "kuncimobil"]
+  },
+  {
+    "question": "Tempat buat nyimpen surat-surat penting di rumah.",
+    "answer": ["laci"]
+  },
+  {
+    "question": "Kalau mau ngeprint tugas ya harus pakai benda ini.",
+    "answer": ["printer"]
+  },
+  {
+    "question": "Benda yang dipakai buat scan dokumen.",
+    "answer": ["scanner"]
+  },
+  {
+    "question": "Yang biasanya ada di depan komputer buat ngetik.",
+    "answer": ["keyboard"]
+  },
+  {
+    "question": "Kalau cursor gerak-gerak di layar, berarti benda ini lagi dipakai.",
+    "answer": ["mouse", "tetikus"]
+  },
+  {
+    "question": "Yang dipakai buat lihat tampilan komputer.",
+    "answer": ["monitor"]
+  },
+  {
+    "question": "Benda yang jadi 'otaknya' komputer meja.",
+    "answer": ["cpu", "casing"]
+  },
+  {
+    "question": "Kalau mau denger suara dari komputer tanpa headset.",
+    "answer": ["speaker"]
+  },
+  {
+    "question": "Yang dipakai buat ngerekam suara.",
+    "answer": ["mikrofon", "microphone"]
+  },
+  {
+    "question": "Kalau lagi meeting online, benda ini sering dipakai biar wajah kelihatan.",
+    "answer": ["webcam", "kamera"]
+  },
+  {
+    "question": "Yang dipakai buat nyimpen data bertahun-tahun di komputer.",
+    "answer": ["harddisk", "hdd"]
+  },
+  {
+    "question": "Versi lebih cepat dari harddisk.",
+    "answer": ["ssd"]
+  },
+  {
+    "question": "Kalau mau ngecas laptop tapi colokannya beda, biasanya pakai benda ini.",
+    "answer": ["adaptor", "adapter"]
+  },
+  {
+    "question": "Yang dipakai buat nyambungin dua perangkat elektronik.",
+    "answer": ["kabel"]
+  },
+  {
+    "question": "Kalau layar HP retak, biasanya dipasang benda bening ini.",
+    "answer": ["temperglass", "temperedglass"]
+  },
+  {
+    "question": "Yang dipakai buat melindungi HP biar gak gampang lecet.",
+    "answer": ["casing", "case"]
+  },
+  {
+    "question": "Tempat buat naro kartu SIM di HP.",
+    "answer": ["simtray", "traysim"]
+  },
+  {
+    "question": "Kalau mau isi daya tanpa colok kabel, biasanya pakai...",
+    "answer": ["wirelesscharger"]
+  },
+  {
+    "question": "Yang dipakai buat nyimpen banyak air di rumah.",
+    "answer": ["toren", "tangkiair"]
+  },
+  {
+    "question": "Kalau mau jemur pakaian, biasanya digantung di benda ini.",
+    "answer": ["jemuran", "gantunganjemuran"]
+  },
+  {
+    "question": "Tempat buat cuci tangan di kamar mandi.",
+    "answer": ["wastafel"]
+  },
+  {
+    "question": "Yang dipakai buat membuka dan menutup aliran air.",
+    "answer": ["keran"]
+  },
+  {
+    "question": "Kalau mandi air hangat di rumah modern, kadang pakai benda ini.",
+    "answer": ["waterheater", "pemanasair"]
+  },
+  {
+    "question": "Tempat buat buang air yang ada tombol flush-nya.",
+    "answer": ["kloset", "toilet"]
+  },
+  {
+    "question": "Yang dipakai buat nutup kepala pas naik motor.",
+    "answer": ["helm"]
+  },
+  {
+    "question": "Kalau naik motor malam-malam, benda ini wajib nyala.",
+    "answer": ["lampu"]
+  },
+  {
+    "question": "Yang dipakai buat ngunci motor biar gak gampang dicuri.",
+    "answer": ["kuncistang"]
+  },
+  {
+    "question": "Benda yang muter terus bikin motor atau mobil bisa jalan.",
+    "answer": ["roda", "ban"]
+  },
+  {
+    "question": "Kalau haus di perjalanan, biasanya minuman dibawa di dalam benda ini.",
+    "answer": ["botol", "tumbler"]
+  },
+  {
+    "question": "Yang dipakai buat menaruh tisu di meja makan.",
+    "answer": ["tempattisu"]
+  },
+  {
+    "question": "Benda yang sering dicari emak-emak pas mau jahit baju tapi entah kenapa suka ilang 😹",
+    "answer": ["benang"]
+  },
+  {
+    "question": "Kalau mau jahit, benang biasanya dimasukin ke benda kecil yang tajam ini.",
+    "answer": ["jarum"]
+  },
+  {
+    "question": "Yang dipakai buat ngukur suhu badan kalau lagi demam.",
+    "answer": ["termometer"]
+  },
+  {
+    "question": "Kalau hujan deras terus angin kenceng, benda ini kadang malah kebalik 😭",
+    "answer": ["payung"]
+  },
+  {
+    "question": "Yang dipakai buat menghapus tulisan di papan tulis putih.",
+    "answer": ["penghapuspapan", "eraser"]
+  },
+  {
+    "question": "Benda yang dipakai guru buat nulis di papan tulis putih.",
+    "answer": ["spidol", "marker"]
+  },
+  {
+    "question": "Kalau kamu baca soal ini, kemungkinan besar kamu lagi lihat benda apa sekarang? 😹",
+    "answer": ["hp", "handphone", "ponsel", "monitor", "layar"]
+  }
+]

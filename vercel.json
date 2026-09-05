@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "by-shiro-anna-panel",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "BY_SHIRO_ANNA_ADAPTER": "vercel"
+  }
+}

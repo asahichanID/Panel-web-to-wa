@@ -1,0 +1,120 @@
+{
+  "version": "2.0.0",
+
+  "packname": "",
+  "author": "",
+
+  "font": {
+    "file": "./musume/sticker/fonts/ImpactRegular.otf",
+    "fallback": "./musume/sticker/fonts/anton.ttf",
+
+    "uppercase": true,
+
+    "size": 68,
+    "minSize": 18,
+    "maxSize": 72,
+
+    "autoResize": true,
+
+    "letterSpacing": 0,
+    "lineSpacing": 2,
+
+    "align": "center",
+
+    "weight": "bold"
+  },
+
+  "text": {
+    "maxLines": 3,
+
+    "wrap": true,
+
+    "stroke": true,
+
+    "strokeColor": "#000000",
+
+    "strokeWidth": 5,
+
+    "fill": "#FFFFFF",
+
+    "shadow": false,
+
+    "shadowColor": "#000000",
+
+    "shadowBlur": 0,
+
+    "shadowOffsetX": 0,
+
+    "shadowOffsetY": 0
+  },
+
+  "position": {
+    "top": {
+      "paddingTop": 14,
+      "paddingLeft": 14,
+      "paddingRight": 14
+    },
+
+    "bottom": {
+      "paddingBottom": 14,
+      "paddingLeft": 14,
+      "paddingRight": 14
+    }
+  },
+
+  "image": {
+    "quality": 100,
+
+    "background": "transparent",
+
+    "allowSticker": true,
+
+    "allowImage": true,
+
+    "keepAspectRatio": true,
+
+    "maxWidth": 512,
+
+    "maxHeight": 512
+  },
+
+  "render": {
+    "canvas": 512,
+
+    "smoothing": true,
+
+    "antialias": true,
+
+    "highQuality": true
+  },
+
+  "emoji": {
+    "enabled": true
+  },
+
+  "cache": {
+    "enabled": true,
+
+    "max": 100
+  },
+
+  "limits": {
+    "maxTopLength": 120,
+
+    "maxBottomLength": 120
+  },
+
+  "video": {
+    "maxDurationSec": 10,
+
+    "maxFps": 15,
+
+    "maxDimension": 512
+  },
+
+  "worker": {
+    "enabled": false,
+
+    "emojiThreshold": 6
+  }
+}

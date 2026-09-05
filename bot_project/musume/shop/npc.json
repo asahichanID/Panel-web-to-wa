@@ -1,0 +1,102 @@
+[
+  {
+    "id": "npc_hana",
+    "name": "Hana Suzuki",
+    "trait": "speed"
+  },
+  {
+    "id": "npc_rika",
+    "name": "Rika Hayashi",
+    "trait": "stamina"
+  },
+  {
+    "id": "npc_sora",
+    "name": "Sora Mizuki",
+    "trait": "power"
+  },
+  {
+    "id": "npc_yuki",
+    "name": "Yuki Asahi",
+    "trait": "accel"
+  },
+  {
+    "id": "npc_mei",
+    "name": "Mei Fujiwara",
+    "trait": "balanced"
+  },
+  {
+    "id": "npc_nami",
+    "name": "Nami Watanabe",
+    "trait": "speed"
+  },
+  {
+    "id": "npc_kaho",
+    "name": "Kaho Tanaka",
+    "trait": "stamina"
+  },
+  {
+    "id": "npc_rui",
+    "name": "Rui Shimizu",
+    "trait": "power"
+  },
+  {
+    "id": "npc_aoi",
+    "name": "Aoi Nakamura",
+    "trait": "accel"
+  },
+  {
+    "id": "npc_tomo",
+    "name": "Tomo Inoue",
+    "trait": "balanced"
+  },
+  {
+    "id": "npc_sera",
+    "name": "Sera Kimura",
+    "trait": "speed"
+  },
+  {
+    "id": "npc_haru",
+    "name": "Haru Yoshida",
+    "trait": "stamina"
+  },
+  {
+    "id": "npc_kana",
+    "name": "Kana Matsuda",
+    "trait": "power"
+  },
+  {
+    "id": "npc_mio",
+    "name": "Mio Ogawa",
+    "trait": "accel"
+  },
+  {
+    "id": "npc_saki",
+    "name": "Saki Kobayashi",
+    "trait": "balanced"
+  },
+  {
+    "id": "npc_rin",
+    "name": "Rin Hashimoto",
+    "trait": "speed"
+  },
+  {
+    "id": "npc_aya",
+    "name": "Aya Yamaguchi",
+    "trait": "stamina"
+  },
+  {
+    "id": "npc_noa",
+    "name": "Noa Sato",
+    "trait": "power"
+  },
+  {
+    "id": "npc_yua",
+    "name": "Yua Ikeda",
+    "trait": "accel"
+  },
+  {
+    "id": "npc_mana",
+    "name": "Mana Ito",
+    "trait": "balanced"
+  }
+]

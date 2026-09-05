@@ -1,0 +1,35 @@
+{
+  "system": "BY SHIRO ANNA",
+  "version": "1.0.0",
+  "architecture": "Adapter-Driven Multi-Cloud Self-Hosted Panel",
+  "adapters": {
+    "local": {
+      "database": "LocalJsonDbAdapter",
+      "storage": "LocalDiskStorageAdapter",
+      "runner": "NativeProcessRunner",
+      "realtime": "HybridRealtimeAdapter (WebSocket + SSE)",
+      "deployment": "LocalRunnerDeployer"
+    },
+    "vercel": {
+      "database": "VercelKvAdapter",
+      "storage": "S3CompatibleStorageAdapter",
+      "runner": "RemoteDaemonRunner",
+      "realtime": "SseRealtimeAdapter",
+      "deployment": "VercelDeployer"
+    },
+    "cloudflare": {
+      "database": "CloudflareD1Adapter",
+      "storage": "CloudflareR2Adapter",
+      "runner": "RemoteDaemonRunner",
+      "realtime": "CloudflareDurableObjectsRealtimeAdapter",
+      "deployment": "CloudflareDeployer"
+    }
+  },
+  "supportedRuntimes": [
+    "Node.js",
+    "Frontend Static Web",
+    "API Microservices",
+    "Full-Stack Web App",
+    "WhatsApp Bot (@sairidev/baileys-new, Baileys standard, custom)"
+  ]
+}

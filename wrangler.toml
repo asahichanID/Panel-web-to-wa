@@ -1,0 +1,17 @@
+name = "by-shiro-anna-panel"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "dist"
+
+[vars]
+NODE_ENV = "production"
+BY_SHIRO_ANNA_ADAPTER = "cloudflare"
+
+# Bindings for Cloudflare D1 Database and R2 Object Storage
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "shiro-anna-production"
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "shiro-anna-storage"
