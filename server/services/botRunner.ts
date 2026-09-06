@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, execSync, ChildProcess } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -11,6 +11,7 @@ export class BotRunnerService extends EventEmitter {
   private configPath: string;
   private status: BotStatus = 'stopped';
   private process: ChildProcess | null = null;
+  private lastSpawnedPid: number | null = null;
   private startTime: number = 0;
   private logs: LogEntry[] = [];
   private telemetryTimer: NodeJS.Timeout | null = null;
@@ -272,9 +273,11 @@ export class BotRunnerService extends EventEmitter {
       this.process = spawn(command, args, {
         cwd: this.storage.projectRoot,
         env: envVars,
+        detached: true,
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 
+      this.lastSpawnedPid = this.process.pid || null;
       this.startTime = Date.now();
       this.status = 'running';
 
@@ -326,12 +329,16 @@ export class BotRunnerService extends EventEmitter {
           code === 0 ? 'process' : 'error',
           `[PROCESS] Exited with code ${code ?? 'null'} (Signal: ${signal ?? 'none'})`
         );
+        // Clean up any remaining dangling child processes
+        this.terminateAllBotProcesses(this.lastSpawnedPid).catch(() => {});
+        this.lastSpawnedPid = null;
         this.emit('status-update', this.getTelemetry());
       });
 
       this.process.on('error', (err) => {
         this.status = 'error';
         this.appendLog('stderr', 'error', `[PROCESS ERROR] Failed to start process: ${err.message}`);
+        this.terminateAllBotProcesses(this.lastSpawnedPid).catch(() => {});
         this.emit('status-update', this.getTelemetry());
       });
 
@@ -344,45 +351,103 @@ export class BotRunnerService extends EventEmitter {
     }
   }
 
-  public async stop(): Promise<BotTelemetry> {
-    if (!this.process || this.status === 'stopped') {
-      this.status = 'stopped';
-      this.startTime = 0;
-      this.emit('status-update', this.getTelemetry());
-      return this.getTelemetry();
+  /**
+   * Terminate all processes belonging to the bot:
+   * 1. Process group kill (-pid)
+   * 2. Subtree kill via pkill
+   * 3. Workspace CWD sweep: kills any background child/forked process in storage.projectRoot
+   * 4. Free up bot port (8085)
+   */
+  private async terminateAllBotProcesses(targetPid: number | null): Promise<void> {
+    // Destroy stdio streams
+    if (this.process) {
+      try {
+        this.process.stdin?.end();
+        this.process.stdin?.destroy();
+        this.process.stdout?.destroy();
+        this.process.stderr?.destroy();
+      } catch {}
     }
 
-    this.appendLog('system', 'process', `[STOPPING] Sending SIGTERM to PID ${this.process.pid}...`);
+    const pidsToKill: number[] = [];
+    if (targetPid && targetPid > 1) pidsToKill.push(targetPid);
+    if (this.lastSpawnedPid && this.lastSpawnedPid > 1 && !pidsToKill.includes(this.lastSpawnedPid)) {
+      pidsToKill.push(this.lastSpawnedPid);
+    }
+
+    for (const p of pidsToKill) {
+      // Process group kill (-pid) in POSIX
+      try {
+        process.kill(-p, 'SIGTERM');
+      } catch {}
+      try {
+        process.kill(-p, 'SIGKILL');
+      } catch {}
+
+      // Direct process kill
+      try {
+        process.kill(p, 'SIGTERM');
+      } catch {}
+      try {
+        process.kill(p, 'SIGKILL');
+      } catch {}
+
+      // Subtree child kill
+      try {
+        execSync(`pkill -KILL -P ${p} 2>/dev/null || true`, { stdio: 'ignore', timeout: 1500 });
+      } catch {}
+    }
+
+    // Workspace CWD sweep: Kill any orphaned background processes running inside projectRoot
+    try {
+      const projectDir = path.resolve(this.storage.projectRoot);
+      const serverPid = process.pid;
+      const parentPid = process.ppid;
+
+      const sweepCmd = `
+        for p in /proc/[0-9]*/cwd; do
+          target_dir=$(readlink -f "$p" 2>/dev/null)
+          if [ "$target_dir" = "${projectDir}" ]; then
+            proc_id=$(basename $(dirname "$p"))
+            if [ "$proc_id" != "${serverPid}" ] && [ "$proc_id" != "${parentPid}" ] && [ "$proc_id" != "1" ]; then
+              kill -9 "$proc_id" 2>/dev/null || true
+            fi
+          fi
+        done
+      `;
+      execSync(sweepCmd, { stdio: 'ignore', timeout: 2500 });
+    } catch {}
+
+    // Release port 8085 if bound by bot
+    try {
+      execSync('fuser -k -9 8085/tcp 2>/dev/null || true', { stdio: 'ignore', timeout: 1000 });
+    } catch {}
+  }
+
+  public async stop(): Promise<BotTelemetry> {
+    const targetPid = this.process?.pid || this.lastSpawnedPid;
+    this.appendLog('system', 'process', `[STOPPING] Mematikan dan memutuskan seluruh proses bot (PID: ${targetPid ?? 'Active'})...`);
 
     try {
-      this.process.kill('SIGTERM');
-
-      // Fallback to SIGKILL if not closed in 3 seconds
-      const proc = this.process;
-      setTimeout(() => {
-        if (proc && !proc.killed && this.status === 'running') {
-          this.appendLog('system', 'process', `[FORCE STOP] Process did not exit in time. Sending SIGKILL...`);
-          try {
-            proc.kill('SIGKILL');
-          } catch {}
-        }
-      }, 3000);
+      await this.terminateAllBotProcesses(targetPid);
+      this.appendLog('system', 'process', `[STOPPED] Seluruh proses bot di latar belakang telah berhasil diputuskan secara total.`);
     } catch (err: any) {
-      this.appendLog('stderr', 'error', `[STOP ERROR] ${err.message}`);
+      this.appendLog('stderr', 'error', `[STOP WARNING] ${err.message}`);
     }
 
     this.status = 'stopped';
     this.startTime = 0;
     this.process = null;
+    this.lastSpawnedPid = null;
     this.emit('status-update', this.getTelemetry());
     return this.getTelemetry();
   }
 
   public async restart(): Promise<BotTelemetry> {
-    this.appendLog('system', 'startup', '[RESTART] Restarting bot process...');
+    this.appendLog('system', 'startup', '[RESTART] Mematikan proses bot sebelumnya...');
     await this.stop();
-    // Brief pause to release ports / files
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    // Brief pause to ensure all ports, socket connections, and file locks are fully released
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return await this.start();
   }
 

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { usePanel } from '../../context/PanelContext';
 import { PanelNodeCategory } from '../../types';
+import { DEFAULT_PRESET_NODES } from '../../data/presetNodes';
 
 interface CreatePanelModalProps {
   isOpen: boolean;
@@ -27,6 +28,9 @@ interface CreatePanelModalProps {
 
 export const CreatePanelModal: React.FC<CreatePanelModalProps> = ({ isOpen, onClose }) => {
   const { createPanel, presetNodes } = usePanel();
+
+  // Always fallback to DEFAULT_PRESET_NODES to guarantee nodes exist in preview, deploy & production
+  const activePresets = presetNodes && presetNodes.length > 0 ? presetNodes : DEFAULT_PRESET_NODES;
 
   const [panelName, setPanelName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<PanelNodeCategory | 'all'>('all');
@@ -45,7 +49,7 @@ export const CreatePanelModal: React.FC<CreatePanelModalProps> = ({ isOpen, onCl
   // Handle Node selection and auto-configure recommended software/command/port
   const handleSelectNode = (nodeType: string) => {
     setSelectedNodeType(nodeType);
-    const found = presetNodes.find((n) => n.type === nodeType);
+    const found = activePresets.find((n) => n.type === nodeType);
     if (found) {
       setServerSoftware(found.defaultSoftware);
       setPort(found.defaultPort);
@@ -56,7 +60,7 @@ export const CreatePanelModal: React.FC<CreatePanelModalProps> = ({ isOpen, onCl
     }
   };
 
-  const filteredNodes = presetNodes.filter((n) => {
+  const filteredNodes = activePresets.filter((n) => {
     if (selectedCategory === 'all') return true;
     return n.category === selectedCategory;
   });
@@ -95,7 +99,7 @@ export const CreatePanelModal: React.FC<CreatePanelModalProps> = ({ isOpen, onCl
     }
   };
 
-  const selectedNodeObj = presetNodes.find((n) => n.type === selectedNodeType) || presetNodes[0];
+  const selectedNodeObj = activePresets.find((n) => n.type === selectedNodeType) || activePresets[0];
 
   return (
     <AnimatePresence>

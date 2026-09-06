@@ -9,6 +9,7 @@ import {
   PanelModel,
   PresetNode,
 } from '../types';
+import { DEFAULT_PRESET_NODES } from '../data/presetNodes';
 
 interface PanelContextType {
   activeTab: ActiveTab;
@@ -126,15 +127,33 @@ const defaultConfig: BotConfig = {
 
 const PanelContext = createContext<PanelContextType | undefined>(undefined);
 
+const DEFAULT_MAIN_PANEL: PanelModel = {
+  id: 'panel-main',
+  name: 'Main Bot Server',
+  nodeType: 'nodejs-22',
+  nodeCategory: 'nodejs',
+  nodeDisplayName: 'Node.js 22 LTS',
+  serverSoftware: 'Express Web Server',
+  ramMb: 1024,
+  diskRomMb: 5120,
+  cpuPercent: 100,
+  port: 8085,
+  startupCommand: 'npm start',
+  status: 'stopped',
+  pid: null,
+  uptimeSeconds: 0,
+  createdAt: '2026-09-06T00:00:00.000Z',
+};
+
 export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   // Sub-view in Dashboard: 'my-panels' (all servers list) or 'panel-detail' (inside specific server dashboard)
   const [subView, setSubView] = useState<'my-panels' | 'panel-detail'>('my-panels');
-  const [panels, setPanels] = useState<PanelModel[]>([]);
+  const [panels, setPanels] = useState<PanelModel[]>([DEFAULT_MAIN_PANEL]);
   const [activePanelId, setActivePanelId] = useState<string>('panel-main');
-  const [activePanel, setActivePanel] = useState<PanelModel | null>(null);
-  const [presetNodes, setPresetNodes] = useState<PresetNode[]>([]);
+  const [activePanel, setActivePanel] = useState<PanelModel | null>(DEFAULT_MAIN_PANEL);
+  const [presetNodes, setPresetNodes] = useState<PresetNode[]>(DEFAULT_PRESET_NODES);
 
   // Floating Create Panel modal
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState<boolean>(false);
@@ -160,16 +179,18 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (res.ok) {
         const data = await res.json();
         const list: PanelModel[] = data.panels || [];
-        setPanels(list);
-        if (data.activePanelId) setActivePanelId(data.activePanelId);
-        if (data.activePanel) {
-          setActivePanel(data.activePanel);
-        } else if (list.length > 0) {
-          setActivePanel(list[0]);
+        if (list.length > 0) {
+          setPanels(list);
+          if (data.activePanelId) setActivePanelId(data.activePanelId);
+          if (data.activePanel) {
+            setActivePanel(data.activePanel);
+          } else {
+            setActivePanel(list[0]);
+          }
         }
       }
     } catch (err) {
-      console.error('Failed to fetch panels', err);
+      console.warn('Failed to fetch panels, keeping existing panel list:', err);
     }
   }, []);
 
@@ -178,10 +199,12 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const res = await fetch('/api/panels/presets');
       if (res.ok) {
         const data = await res.json();
-        setPresetNodes(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setPresetNodes(data);
+        }
       }
     } catch (err) {
-      console.error('Failed to fetch presets', err);
+      console.warn('Using bundled preset nodes fallback:', err);
     }
   }, []);
 
