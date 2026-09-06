@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import multer from 'multer';
 import { BotRunnerService } from '../services/botRunner.js';
 import { StorageService } from '../services/storageService.js';
 import { PanelManagerService, PRESET_NODES } from '../services/panelManager.js';
@@ -247,8 +248,56 @@ export function createApiRouter(
     }
   });
 
-  // Upload file via JSON / Base64 payload
-  router.post('/files/upload', async (req: Request, res: Response) => {
+  // Setup multer with disk storage streaming for zero memory overhead
+  const upload = multer({
+    limits: {
+      fileSize: 200 * 1024 * 1024, // 200MB max
+    },
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const targetDir =
+          (req.body?.dir as string) ||
+          (req.query.dir as string) ||
+          (req.headers['x-target-dir'] as string) ||
+          '/';
+        const resolved = storage.resolveSafe(targetDir);
+        if (!fs.existsSync(resolved)) {
+          fs.mkdirSync(resolved, { recursive: true });
+        }
+        cb(null, resolved);
+      },
+      filename: (req, file, cb) => {
+        const cleanName = path.basename(file.originalname);
+        cb(null, cleanName);
+      },
+    }),
+  });
+
+  // Unified file upload endpoint: handles FormData multipart (standard) & JSON payload
+  router.all('/files/upload', (req: Request, res: Response) => {
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Metode HTTP harus POST' });
+
+    const contentType = req.headers['content-type'] || '';
+    if (contentType.includes('multipart/form-data')) {
+      upload.single('file')(req, res, (err: any) => {
+        if (err) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ error: 'Ukuran file melebihi batas 200MB' });
+          }
+          return res.status(400).json({ error: err.message || 'Gagal memproses upload file' });
+        }
+        if (!req.file) {
+          return res.status(400).json({ error: 'Tidak ada file yang diterima' });
+        }
+        const relDir = (req.body?.dir as string) || (req.query.dir as string) || '/';
+        const savedRelPath = path.join(relDir, req.file.filename).replace(/\\/g, '/');
+        return res.json({ success: true, path: savedRelPath.startsWith('/') ? savedRelPath : '/' + savedRelPath });
+      });
+      return;
+    }
+
+    // JSON / Base64 fallback
     try {
       const { dir = '/', filename, content, isBase64 = false } = req.body || {};
       if (!filename) return res.status(400).json({ error: 'Parameter filename wajib disertakan' });
@@ -256,18 +305,26 @@ export function createApiRouter(
         return res.status(400).json({ error: 'Konten file wajib disertakan' });
       }
 
-      const savedPath = await storage.saveUploadedFile(dir, filename, content, isBase64);
-      res.json({ success: true, path: savedPath });
+      storage.saveUploadedFile(dir, filename, content, isBase64)
+        .then((savedPath) => res.json({ success: true, path: savedPath }))
+        .catch((err) => res.status(500).json({ error: err.message || 'Gagal menyimpan file' }));
     } catch (err: any) {
       res.status(500).json({ error: err.message || 'Gagal menyimpan file' });
     }
   });
 
-  // Direct raw binary stream upload - fast, zero memory bloat, handles large files reliably
-  router.post('/files/upload-raw', async (req: Request, res: Response) => {
+  // Direct raw binary stream upload fallback
+  router.all('/files/upload-raw', async (req: Request, res: Response) => {
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Metode HTTP harus POST' });
+
     try {
-      const dir = (req.query.dir as string) || '/';
-      const rawName = (req.query.filename as string) || (req.headers['x-filename'] as string) || 'uploaded-file';
+      const dir = (req.query.dir as string) || (req.headers['x-target-dir'] as string) || '/';
+      const rawName =
+        (req.query.filename as string) ||
+        (req.headers['x-target-filename'] as string) ||
+        (req.headers['x-filename'] as string) ||
+        'uploaded-file';
       const filename = decodeURIComponent(rawName);
       if (!filename) {
         return res.status(400).json({ error: 'Parameter filename wajib disertakan' });

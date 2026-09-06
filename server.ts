@@ -12,6 +12,17 @@ async function startServer() {
   const PORT = 3000;
   const HOST = '0.0.0.0';
 
+  // Global CORS & preflight handler to prevent 405 on OPTIONS
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    next();
+  });
+
   // Support JSON and large payloads for file upload (up to 150MB)
   app.use(express.json({ limit: '150mb' }));
   app.use(express.urlencoded({ extended: true, limit: '150mb' }));

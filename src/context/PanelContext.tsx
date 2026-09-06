@@ -527,44 +527,56 @@ async function parseResponseJsonOrError<T = any>(res: Response, fallbackMessage:
 
   const uploadRawFile = useCallback(async (file: File, targetDir?: string): Promise<void> => {
     const dir = targetDir ?? currentDir;
-    const url = `/api/files/upload-raw?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(file.name)}`;
-    const res = await fetch(url, {
+    const formData = new FormData();
+    formData.append('dir', dir);
+    formData.append('file', file, file.name);
+
+    // Standard FormData to clean URL /api/files/upload
+    // - Avoids filename in query string which triggers Nginx static file 405 Method Not Allowed
+    // - CORS safelisted content-type (no preflight OPTIONS rejection)
+    // - Memory-efficient streaming directly to disk via multer
+    const res = await fetch('/api/files/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-      },
-      body: file,
+      body: formData,
     });
     await parseResponseJsonOrError(res, 'Gagal mengunggah file');
     await fetchFiles(dir);
   }, [currentDir, fetchFiles]);
 
   const uploadFile = useCallback(async (filename: string, content: string | File | Blob, isBase64: boolean = false): Promise<void> => {
-    if (content instanceof File || content instanceof Blob) {
-      const url = `/api/files/upload-raw?dir=${encodeURIComponent(currentDir)}&filename=${encodeURIComponent(filename)}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: content,
-      });
-      await parseResponseJsonOrError(res, 'Gagal mengunggah file');
-      await fetchFiles(currentDir);
+    const dir = currentDir;
+    if (content instanceof File) {
+      await uploadRawFile(content, dir);
+      return;
+    }
+    if (content instanceof Blob) {
+      const file = new File([content], filename);
+      await uploadRawFile(file, dir);
       return;
     }
 
+    // If text string, wrap in File Blob and send via multipart FormData
+    if (!isBase64 && typeof content === 'string') {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const file = new File([blob], filename);
+      await uploadRawFile(file, dir);
+      return;
+    }
+
+    // Fallback JSON payload
     const res = await fetch('/api/files/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        dir: currentDir,
+        dir,
         filename,
         content,
         isBase64,
       }),
     });
     await parseResponseJsonOrError(res, 'Gagal mengunggah file');
-    await fetchFiles(currentDir);
-  }, [currentDir, fetchFiles]);
+    await fetchFiles(dir);
+  }, [currentDir, fetchFiles, uploadRawFile]);
 
   const createFolder = useCallback(async (name: string): Promise<void> => {
     const res = await fetch('/api/files/folder', {
