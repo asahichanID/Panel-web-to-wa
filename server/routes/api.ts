@@ -3,10 +3,117 @@ import path from 'path';
 import fs from 'fs';
 import { BotRunnerService } from '../services/botRunner.js';
 import { StorageService } from '../services/storageService.js';
+import { PanelManagerService, PRESET_NODES } from '../services/panelManager.js';
 import { LogCategory } from '../types.js';
 
-export function createApiRouter(runner: BotRunnerService, storage: StorageService): Router {
+export function createApiRouter(
+  runner: BotRunnerService,
+  storage: StorageService,
+  panelManager: PanelManagerService
+): Router {
   const router = Router();
+
+  // 0. Panels Management (Multi-panel & Create Panel)
+  router.get('/panels', (req: Request, res: Response) => {
+    // Keep telemetry synced
+    const telemetry = runner.getTelemetry();
+    panelManager.syncActivePanelStatus(telemetry.status, telemetry.pid, telemetry.uptimeSeconds);
+    res.json({
+      panels: panelManager.getAllPanels(),
+      activePanelId: panelManager.getActivePanelId(),
+      activePanel: panelManager.getActivePanel(),
+    });
+  });
+
+  router.get('/panels/presets', (req: Request, res: Response) => {
+    res.json(PRESET_NODES);
+  });
+
+  router.post('/panels', async (req: Request, res: Response) => {
+    try {
+      const { name, nodeType, serverSoftware, ramMb, diskRomMb, cpuPercent, port, startupCommand } = req.body;
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: 'Nama panel wajib diisi' });
+      }
+      const newPanel = await panelManager.createPanel({
+        name,
+        nodeType: nodeType || 'nodejs-22',
+        serverSoftware,
+        ramMb: Number(ramMb) || 1024,
+        diskRomMb: Number(diskRomMb) || 5120,
+        cpuPercent: Number(cpuPercent) || 100,
+        port: port ? Number(port) : undefined,
+        startupCommand,
+      });
+
+      // Sync active runner configuration to match this new panel
+      await runner.saveConfig({
+        botName: newPanel.name,
+        startupCommand: newPanel.startupCommand,
+        ramLimitMb: newPanel.ramMb,
+        cpuLimitPercent: newPanel.cpuPercent,
+      });
+
+      res.status(201).json(newPanel);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.get('/panels/:id', (req: Request, res: Response) => {
+    const panel = panelManager.getPanel(req.params.id);
+    if (!panel) return res.status(404).json({ error: 'Panel tidak ditemukan' });
+    res.json(panel);
+  });
+
+  router.put('/panels/:id', async (req: Request, res: Response) => {
+    try {
+      const updated = await panelManager.updatePanel(req.params.id, req.body);
+      if (!updated) return res.status(404).json({ error: 'Panel tidak ditemukan' });
+
+      // If active panel is updated, sync runner
+      if (panelManager.getActivePanelId() === updated.id) {
+        await runner.saveConfig({
+          botName: updated.name,
+          startupCommand: updated.startupCommand,
+          ramLimitMb: updated.ramMb,
+          cpuLimitPercent: updated.cpuPercent,
+        });
+      }
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.delete('/panels/:id', async (req: Request, res: Response) => {
+    try {
+      const success = await panelManager.deletePanel(req.params.id);
+      res.json({ success });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  router.post('/panels/:id/select', async (req: Request, res: Response) => {
+    try {
+      const selected = await panelManager.setActivePanelId(req.params.id);
+      if (!selected) return res.status(404).json({ error: 'Panel tidak ditemukan' });
+
+      // Sync runner settings to this panel
+      await runner.saveConfig({
+        botName: selected.name,
+        startupCommand: selected.startupCommand,
+        ramLimitMb: selected.ramMb,
+        cpuLimitPercent: selected.cpuPercent,
+      });
+
+      res.json({ success: true, activePanel: selected });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   // 1. Status & Telemetry
   router.get('/status', (req: Request, res: Response) => {
@@ -66,11 +173,13 @@ export function createApiRouter(runner: BotRunnerService, storage: StorageServic
 
   router.get('/bot/status-deps', (req: Request, res: Response) => {
     const pkgJson = fs.existsSync(path.join(storage.projectRoot, 'package.json'));
-    const nodeModules = fs.existsSync(path.join(storage.projectRoot, 'node_modules'));
+    const hasProjectNodeModules = fs.existsSync(path.join(storage.projectRoot, 'node_modules'));
+    const hasParentNodeModules = fs.existsSync(path.join(process.cwd(), 'node_modules'));
     res.json({
       hasPackageJson: pkgJson,
-      hasNodeModules: nodeModules,
+      hasNodeModules: hasProjectNodeModules || hasParentNodeModules,
       isInstalling: runner.isInstalling,
+      skipInstallDeps: runner.getConfig().skipInstallDeps !== false,
     });
   });
 

@@ -4,6 +4,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { StorageService } from './server/services/storageService.js';
 import { BotRunnerService } from './server/services/botRunner.js';
+import { PanelManagerService } from './server/services/panelManager.js';
 import { createApiRouter } from './server/routes/api.js';
 
 async function startServer() {
@@ -22,10 +23,18 @@ async function startServer() {
   const runner = new BotRunnerService(storage);
   await runner.init();
 
+  const panelManager = new PanelManagerService();
+  await panelManager.init();
+
+  // Keep active panel status in sync with bot runner telemetry
+  runner.on('status-update', (t) => {
+    panelManager.syncActivePanelStatus(t.status, t.pid, t.uptimeSeconds);
+  });
+
   const httpServer = http.createServer(app);
 
   // Mount API routes
-  app.use('/api', createApiRouter(runner, storage));
+  app.use('/api', createApiRouter(runner, storage, panelManager));
 
   // Health check route
   app.get('/api/health', (req, res) => {

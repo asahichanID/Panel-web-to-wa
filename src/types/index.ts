@@ -15,6 +15,13 @@ export interface BotConfig {
   ramLimitMb: number;
   cpuLimitPercent: number;
   envVars: EnvironmentVariable[];
+  botNumber?: string;
+  pairingMode?: 'pairing-code' | 'qr';
+  prefix?: string;
+  skipInstallDeps?: boolean;
+  customDependencies?: string;
+  autoRestart?: boolean;
+  isInitialized?: boolean;
 }
 
 export interface BotTelemetry {
@@ -46,6 +53,40 @@ export interface FileItem {
   isDirectory: boolean;
   size: number;
   modified: string;
+}
+
+export type PanelNodeCategory = 'minecraft' | 'nodejs' | 'python' | 'runtimes' | 'custom';
+
+export interface PanelModel {
+  id: string;
+  name: string;
+  nodeType: string;
+  nodeCategory: PanelNodeCategory;
+  nodeDisplayName: string;
+  serverSoftware: string;
+  ramMb: number;
+  diskRomMb: number;
+  cpuPercent: number;
+  port: number;
+  startupCommand: string;
+  status: BotStatus;
+  pid: number | null;
+  uptimeSeconds: number;
+  createdAt: string;
+  envVars?: EnvironmentVariable[];
+}
+
+export interface PresetNode {
+  type: string;
+  category: PanelNodeCategory;
+  name: string;
+  description: string;
+  defaultSoftware: string;
+  defaultCommand: string;
+  defaultPort: number;
+  defaultRam: number;
+  defaultRom: number;
+  defaultCpu: number;
 }
 
 export type ActiveTab = 'dashboard' | 'files' | 'console' | 'logs' | 'settings';

@@ -121,15 +121,15 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-300">Pilihan Engine</label>
+              <label className="text-xs font-medium text-slate-300">Pilihan Runtime / Node</label>
               <select
                 value={engine}
                 onChange={(e) => setEngine(e.target.value as BotEngineType)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 cursor-pointer"
               >
-                <option value="baileys-default">Baileys Bawaan (@sairidev/baileys-new)</option>
-                <option value="custom-baileys">Custom Baileys (@whiskeysockets/baileys)</option>
-                <option value="custom-node">Custom Node.js (Any Script)</option>
+                <option value="custom-node">Node.js Runtime (Standard / npm start)</option>
+                <option value="baileys-default">Minecraft / Game Server Node</option>
+                <option value="custom-baileys">Python / Multi-runtime Daemon</option>
               </select>
             </div>
           </div>

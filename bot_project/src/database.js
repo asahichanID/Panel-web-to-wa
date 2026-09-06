@@ -6,6 +6,8 @@ import chalk from 'chalk';
 import mongoose from 'mongoose';
 import { fileURLToPath } from 'url';
 
+mongoose.set('bufferCommands', false);
+
 const __filename = fileURLToPath(import.meta.url);
 
 class MongoDB {

@@ -1,0 +1,32 @@
+{
+  "botName": "Minecraft SMP Paper",
+  "engine": "baileys-default",
+  "startupCommand": "java -Xms128M -Xmx4096M -jar server.jar --nogui",
+  "ramLimitMb": 4096,
+  "cpuLimitPercent": 200,
+  "botNumber": "6281234567890",
+  "pairingMode": "pairing-code",
+  "prefix": "!",
+  "skipInstallDeps": true,
+  "customDependencies": "",
+  "autoRestart": true,
+  "isInitialized": false,
+  "envVars": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    },
+    {
+      "key": "BOT_NAME",
+      "value": "BY SHIRO ANNA"
+    },
+    {
+      "key": "BOT_PREFIX",
+      "value": "!"
+    },
+    {
+      "key": "SESSION_ID",
+      "value": "shiro_auth_01"
+    }
+  ]
+}

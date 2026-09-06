@@ -31,6 +31,13 @@ export class BotRunnerService extends EventEmitter {
       startupCommand: 'node index.js',
       ramLimitMb: 1024,
       cpuLimitPercent: 100,
+      botNumber: '',
+      pairingMode: 'pairing-code',
+      prefix: '!',
+      skipInstallDeps: true,
+      customDependencies: '',
+      autoRestart: true,
+      isInitialized: false,
       envVars: [
         { key: 'NODE_ENV', value: 'production' },
         { key: 'BOT_NAME', value: 'BY SHIRO ANNA' },
@@ -202,16 +209,34 @@ export class BotRunnerService extends EventEmitter {
         }
       }
 
-      // Check if node_modules exists in bot project, auto-install if package.json exists but node_modules does not
+      // Check dependencies configuration
       const nodeModulesPath = path.join(this.storage.projectRoot, 'node_modules');
       const pkgJsonPath = path.join(this.storage.projectRoot, 'package.json');
-      if (!fs.existsSync(nodeModulesPath) && fs.existsSync(pkgJsonPath)) {
+
+      if (this.config.skipInstallDeps !== false) {
         this.appendLog(
           'system',
           'install',
-          '[AUTO-INSTALL] Folder node_modules belum ditemukan di root project. Memasang dependensi bot secara otomatis...'
+          '[DEPENDENSI] Menggunakan dependensi bawaan package.json (lewati instalasi tambahan agar cepat & anti-error).'
         );
-        await this.runInstall();
+      } else if (!fs.existsSync(nodeModulesPath) && fs.existsSync(pkgJsonPath)) {
+        this.appendLog(
+          'system',
+          'install',
+          '[AUTO-INSTALL] Menyiapkan dependensi bot di background...'
+        );
+        this.runInstall().catch((err) => {
+          this.appendLog('stderr', 'error', `[INSTALL NOTICE] ${err?.message || err}`);
+        });
+      }
+
+      // Handle pairing mode flags if node index.js
+      if (command === 'node' && args.length > 0 && args[0].endsWith('.js')) {
+        if (this.config.pairingMode === 'qr' && !args.includes('--qr')) {
+          args.push('--qr');
+        } else if (this.config.pairingMode === 'pairing-code' && !args.includes('--pairing-code') && !args.includes('--qr')) {
+          args.push('--pairing-code');
+        }
       }
 
       // Node module resolution paths
@@ -224,11 +249,19 @@ export class BotRunnerService extends EventEmitter {
         ...process.env,
         BOT_NAME: this.config.botName,
         BOT_ENGINE: this.config.engine,
-        PORT: '8080',
-        SERVER_PORT: '8080',
+        PORT: '8085',
+        SERVER_PORT: '8085',
         NODE_OPTIONS: `--max-old-space-size=${this.config.ramLimitMb}`,
         NODE_PATH: nodePath,
       };
+
+      if (this.config.botNumber && this.config.botNumber.trim()) {
+        envVars.BOT_NUMBER = this.config.botNumber.trim();
+      }
+
+      if (this.config.prefix && this.config.prefix.trim()) {
+        envVars.BOT_PREFIX = this.config.prefix.trim();
+      }
 
       for (const item of this.config.envVars) {
         if (item.key && item.key.trim()) {

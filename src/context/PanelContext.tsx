@@ -6,11 +6,38 @@ import {
   FileItem,
   LogCategory,
   LogEntry,
+  PanelModel,
+  PresetNode,
 } from '../types';
 
 interface PanelContextType {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
+
+  // Sub-view in Dashboard (My Panels list vs Selected Panel Detail)
+  subView: 'my-panels' | 'panel-detail';
+  setSubView: (view: 'my-panels' | 'panel-detail') => void;
+  openPanelDetail: (panelId: string) => Promise<void>;
+  backToPanels: () => void;
+
+  // Multi-panel list and operations
+  panels: PanelModel[];
+  activePanel: PanelModel | null;
+  activePanelId: string;
+  presetNodes: PresetNode[];
+  fetchPanels: () => Promise<void>;
+  createPanel: (data: {
+    name: string;
+    nodeType: string;
+    serverSoftware?: string;
+    ramMb: number;
+    diskRomMb: number;
+    cpuPercent: number;
+    port?: number;
+    startupCommand?: string;
+  }) => Promise<PanelModel | null>;
+  updatePanel: (id: string, updates: Partial<PanelModel>) => Promise<void>;
+  deletePanel: (id: string) => Promise<void>;
 
   // Telemetry & Power
   telemetry: BotTelemetry;
@@ -19,6 +46,12 @@ interface PanelContextType {
   isPowerLoading: boolean;
   powerAction: (action: 'start' | 'stop' | 'restart') => Promise<void>;
   saveSettings: (newConfig: Partial<BotConfig>) => Promise<void>;
+
+  // Floating Create Panel State
+  isCreatePanelOpen: boolean;
+  setIsCreatePanelOpen: (open: boolean) => void;
+  openCreatePanel: () => void;
+  closeCreatePanel: () => void;
 
   // Console & Terminal
   consoleLogs: LogEntry[];
@@ -76,6 +109,13 @@ const defaultConfig: BotConfig = {
   startupCommand: 'node index.js',
   ramLimitMb: 1024,
   cpuLimitPercent: 100,
+  botNumber: '',
+  pairingMode: 'pairing-code',
+  prefix: '!',
+  skipInstallDeps: true,
+  customDependencies: '',
+  autoRestart: true,
+  isInitialized: false,
   envVars: [
     { key: 'NODE_ENV', value: 'production' },
     { key: 'BOT_NAME', value: 'BY SHIRO ANNA' },
@@ -89,11 +129,151 @@ const PanelContext = createContext<PanelContextType | undefined>(undefined);
 export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
+  // Sub-view in Dashboard: 'my-panels' (all servers list) or 'panel-detail' (inside specific server dashboard)
+  const [subView, setSubView] = useState<'my-panels' | 'panel-detail'>('my-panels');
+  const [panels, setPanels] = useState<PanelModel[]>([]);
+  const [activePanelId, setActivePanelId] = useState<string>('panel-main');
+  const [activePanel, setActivePanel] = useState<PanelModel | null>(null);
+  const [presetNodes, setPresetNodes] = useState<PresetNode[]>([]);
+
+  // Floating Create Panel modal
+  const [isCreatePanelOpen, setIsCreatePanelOpen] = useState<boolean>(false);
+
+  const openCreatePanel = useCallback(() => {
+    setIsCreatePanelOpen(true);
+  }, []);
+
+  const closeCreatePanel = useCallback(() => {
+    setIsCreatePanelOpen(false);
+  }, []);
+
   // Core state
   const [telemetry, setTelemetry] = useState<BotTelemetry>(defaultTelemetry);
   const [config, setConfig] = useState<BotConfig>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
   const [isPowerLoading, setIsPowerLoading] = useState(false);
+
+  // Fetch panels & presets
+  const fetchPanels = useCallback(async () => {
+    try {
+      const res = await fetch('/api/panels');
+      if (res.ok) {
+        const data = await res.json();
+        const list: PanelModel[] = data.panels || [];
+        setPanels(list);
+        if (data.activePanelId) setActivePanelId(data.activePanelId);
+        if (data.activePanel) {
+          setActivePanel(data.activePanel);
+        } else if (list.length > 0) {
+          setActivePanel(list[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch panels', err);
+    }
+  }, []);
+
+  const fetchPresets = useCallback(async () => {
+    try {
+      const res = await fetch('/api/panels/presets');
+      if (res.ok) {
+        const data = await res.json();
+        setPresetNodes(data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch presets', err);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchPanels();
+    fetchPresets();
+  }, [fetchPanels, fetchPresets]);
+
+  const openPanelDetail = useCallback(async (panelId: string) => {
+    try {
+      const res = await fetch(`/api/panels/${panelId}/select`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.activePanel) {
+          setActivePanel(data.activePanel);
+          setActivePanelId(data.activePanel.id);
+        }
+      }
+    } catch (err) {
+      console.error('Error selecting panel:', err);
+    }
+    setActivePanelId(panelId);
+    setSubView('panel-detail');
+  }, []);
+
+  const backToPanels = useCallback(() => {
+    setSubView('my-panels');
+    fetchPanels();
+  }, [fetchPanels]);
+
+  const createPanel = useCallback(async (data: {
+    name: string;
+    nodeType: string;
+    serverSoftware?: string;
+    ramMb: number;
+    diskRomMb: number;
+    cpuPercent: number;
+    port?: number;
+    startupCommand?: string;
+  }): Promise<PanelModel | null> => {
+    try {
+      const res = await fetch('/api/panels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const created: PanelModel = await res.json();
+        setPanels((prev) => [...prev, created]);
+        setActivePanel(created);
+        setActivePanelId(created.id);
+        setSubView('panel-detail');
+        closeCreatePanel();
+        return created;
+      }
+    } catch (err) {
+      console.error('Failed to create panel:', err);
+    }
+    return null;
+  }, [closeCreatePanel]);
+
+  const updatePanel = useCallback(async (id: string, updates: Partial<PanelModel>) => {
+    try {
+      const res = await fetch(`/api/panels/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPanels((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        if (activePanelId === id) {
+          setActivePanel(updated);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update panel:', err);
+    }
+  }, [activePanelId]);
+
+  const deletePanel = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/panels/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchPanels();
+        setSubView('my-panels');
+      }
+    } catch (err) {
+      console.error('Failed to delete panel:', err);
+    }
+  }, [fetchPanels]);
 
   // Console and logs
   const [consoleLogs, setConsoleLogs] = useState<LogEntry[]>([]);
@@ -507,12 +687,28 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         activeTab,
         setActiveTab,
+        subView,
+        setSubView,
+        openPanelDetail,
+        backToPanels,
+        panels,
+        activePanel,
+        activePanelId,
+        presetNodes,
+        fetchPanels,
+        createPanel,
+        updatePanel,
+        deletePanel,
         telemetry,
         config,
         isLoading,
         isPowerLoading,
         powerAction,
         saveSettings,
+        isCreatePanelOpen,
+        setIsCreatePanelOpen,
+        openCreatePanel,
+        closeCreatePanel,
         consoleLogs,
         sendCommand,
         clearConsole,

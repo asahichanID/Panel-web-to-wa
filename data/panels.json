@@ -1,0 +1,36 @@
+[
+  {
+    "id": "panel-main",
+    "name": "Main Bot Server",
+    "nodeType": "nodejs-22",
+    "nodeCategory": "nodejs",
+    "nodeDisplayName": "Node.js 22 LTS",
+    "serverSoftware": "Express Web Server",
+    "ramMb": 1024,
+    "diskRomMb": 5120,
+    "cpuPercent": 100,
+    "port": 8085,
+    "startupCommand": "npm start",
+    "status": "stopped",
+    "pid": null,
+    "uptimeSeconds": 0,
+    "createdAt": "2026-09-06T02:58:36.019Z"
+  },
+  {
+    "id": "panel-mtp82uoc-8ldj",
+    "name": "Minecraft SMP Paper",
+    "nodeType": "mc-paper",
+    "nodeCategory": "minecraft",
+    "nodeDisplayName": "Minecraft Java - Paper",
+    "serverSoftware": "PaperSpigot Core",
+    "ramMb": 4096,
+    "diskRomMb": 10240,
+    "cpuPercent": 200,
+    "port": 25565,
+    "startupCommand": "java -Xms128M -Xmx4096M -jar server.jar --nogui",
+    "status": "stopped",
+    "pid": null,
+    "uptimeSeconds": 0,
+    "createdAt": "2026-09-06T02:58:42.252Z"
+  }
+]
