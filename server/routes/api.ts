@@ -247,19 +247,36 @@ export function createApiRouter(
     }
   });
 
-  // Upload file to directory
+  // Upload file via JSON / Base64 payload
   router.post('/files/upload', async (req: Request, res: Response) => {
     try {
-      const { dir = '/', filename, content, isBase64 = false } = req.body;
-      if (!filename) return res.status(400).json({ error: 'filename required' });
+      const { dir = '/', filename, content, isBase64 = false } = req.body || {};
+      if (!filename) return res.status(400).json({ error: 'Parameter filename wajib disertakan' });
       if (content === undefined || content === null) {
-        return res.status(400).json({ error: 'content required' });
+        return res.status(400).json({ error: 'Konten file wajib disertakan' });
       }
 
       const savedPath = await storage.saveUploadedFile(dir, filename, content, isBase64);
       res.json({ success: true, path: savedPath });
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: err.message || 'Gagal menyimpan file' });
+    }
+  });
+
+  // Direct raw binary stream upload - fast, zero memory bloat, handles large files reliably
+  router.post('/files/upload-raw', async (req: Request, res: Response) => {
+    try {
+      const dir = (req.query.dir as string) || '/';
+      const rawName = (req.query.filename as string) || (req.headers['x-filename'] as string) || 'uploaded-file';
+      const filename = decodeURIComponent(rawName);
+      if (!filename) {
+        return res.status(400).json({ error: 'Parameter filename wajib disertakan' });
+      }
+
+      const savedPath = await storage.saveUploadedStream(dir, filename, req);
+      res.json({ success: true, path: savedPath });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Gagal mengunggah file' });
     }
   });
 

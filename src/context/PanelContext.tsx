@@ -81,7 +81,8 @@ interface PanelContextType {
   fetchFiles: (dir?: string) => Promise<void>;
   readFile: (path: string) => Promise<string>;
   saveFile: (path: string, content: string) => Promise<void>;
-  uploadFile: (filename: string, content: string, isBase64?: boolean) => Promise<void>;
+  uploadFile: (filename: string, content: string | File | Blob, isBase64?: boolean) => Promise<void>;
+  uploadRawFile: (file: File, targetDir?: string) => Promise<void>;
   createFolder: (name: string) => Promise<void>;
   deleteFile: (path: string) => Promise<void>;
   deleteMultipleFiles: (paths: string[]) => Promise<void>;
@@ -486,14 +487,32 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [currentDir]);
 
+async function parseResponseJsonOrError<T = any>(res: Response, fallbackMessage: string): Promise<T> {
+  const text = await res.text();
+  let parsed: any = null;
+  if (text) {
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Non-JSON response (e.g. HTML error page or empty string)
+    }
+  }
+
+  if (!res.ok) {
+    const errorMsg =
+      parsed?.error ||
+      (text && text.length > 0 && text.length < 300 && !text.includes('<html') ? text.trim() : null) ||
+      `${fallbackMessage} (Status ${res.status})`;
+    throw new Error(errorMsg);
+  }
+
+  return (parsed !== null ? parsed : {}) as T;
+}
+
   const readFile = useCallback(async (filePath: string): Promise<string> => {
     const res = await fetch(`/api/files/content?path=${encodeURIComponent(filePath)}`);
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to read file');
-    }
-    const data = await res.json();
-    return data.content;
+    const data = await parseResponseJsonOrError<{ content: string }>(res, 'Gagal membaca isi file');
+    return data.content ?? '';
   }, []);
 
   const saveFile = useCallback(async (filePath: string, content: string): Promise<void> => {
@@ -502,14 +521,37 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: filePath, content }),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to save file');
-    }
+    await parseResponseJsonOrError(res, 'Gagal menyimpan file');
     await fetchFiles();
   }, [fetchFiles]);
 
-  const uploadFile = useCallback(async (filename: string, content: string, isBase64: boolean = false): Promise<void> => {
+  const uploadRawFile = useCallback(async (file: File, targetDir?: string): Promise<void> => {
+    const dir = targetDir ?? currentDir;
+    const url = `/api/files/upload-raw?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(file.name)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+      },
+      body: file,
+    });
+    await parseResponseJsonOrError(res, 'Gagal mengunggah file');
+    await fetchFiles(dir);
+  }, [currentDir, fetchFiles]);
+
+  const uploadFile = useCallback(async (filename: string, content: string | File | Blob, isBase64: boolean = false): Promise<void> => {
+    if (content instanceof File || content instanceof Blob) {
+      const url = `/api/files/upload-raw?dir=${encodeURIComponent(currentDir)}&filename=${encodeURIComponent(filename)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: content,
+      });
+      await parseResponseJsonOrError(res, 'Gagal mengunggah file');
+      await fetchFiles(currentDir);
+      return;
+    }
+
     const res = await fetch('/api/files/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -520,10 +562,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isBase64,
       }),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to upload file');
-    }
+    await parseResponseJsonOrError(res, 'Gagal mengunggah file');
     await fetchFiles(currentDir);
   }, [currentDir, fetchFiles]);
 
@@ -533,10 +572,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dir: currentDir, name }),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to create folder');
-    }
+    await parseResponseJsonOrError(res, 'Gagal membuat folder');
     await fetchFiles(currentDir);
   }, [currentDir, fetchFiles]);
 
@@ -544,10 +580,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const res = await fetch(`/api/files?path=${encodeURIComponent(targetPath)}`, {
       method: 'DELETE',
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to delete item');
-    }
+    await parseResponseJsonOrError(res, 'Gagal menghapus file');
     await fetchFiles(currentDir);
   }, [currentDir, fetchFiles]);
 
@@ -557,10 +590,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ paths }),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to delete selected items');
-    }
+    await parseResponseJsonOrError(res, 'Gagal menghapus item terpilih');
     await fetchFiles(currentDir);
   }, [currentDir, fetchFiles]);
 
@@ -568,10 +598,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const res = await fetch('/api/files/delete-all', {
       method: 'POST',
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to delete all files');
-    }
+    await parseResponseJsonOrError(res, 'Gagal menghapus seluruh file');
     setCurrentDir('/');
     await fetchFiles('/');
   }, [fetchFiles]);
@@ -583,10 +610,10 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: filePath, destinationDir }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to unarchive file');
-      }
+      const data = await parseResponseJsonOrError<{ success: boolean; message: string; count: number }>(
+        res,
+        'Gagal mengekstrak arsip'
+      );
       await fetchFiles(currentDir);
       return data;
     },
@@ -600,10 +627,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sources, destinationDir }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to move items');
-      }
+      await parseResponseJsonOrError(res, 'Gagal memindahkan file');
       await fetchFiles(currentDir);
     },
     [currentDir, fetchFiles]
@@ -616,10 +640,10 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sourceDir, deleteSourceDirAfter }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to move all contents to root');
-      }
+      const data = await parseResponseJsonOrError<{ count: number; message: string }>(
+        res,
+        'Gagal memindahkan isi folder'
+      );
       // If we are currently inside that sourceDir, navigate back to root
       if (currentDir === sourceDir || currentDir.startsWith(sourceDir + '/')) {
         setCurrentDir('/');
@@ -647,6 +671,11 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     checkDepsStatus();
 
     const depsInterval = setInterval(checkDepsStatus, 8000);
+
+    // Heartbeat keepalive ping to ensure container stays warm and responsive
+    const keepaliveInterval = setInterval(() => {
+      fetch('/api/health').catch(() => {});
+    }, 20000);
 
     // Initial console fetch
     fetch('/api/console')
@@ -686,6 +715,8 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     return () => {
+      clearInterval(depsInterval);
+      clearInterval(keepaliveInterval);
       sse.close();
       eventSourceRef.current = null;
     };
@@ -755,6 +786,7 @@ export const PanelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         readFile,
         saveFile,
         uploadFile,
+        uploadRawFile,
         createFolder,
         deleteFile,
         deleteMultipleFiles,

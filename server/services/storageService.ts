@@ -210,6 +210,40 @@ Welcome to your bot workspace!
     return '/' + path.relative(this.projectRoot, destination).replace(/\\/g, '/');
   }
 
+  public async saveUploadedStream(
+    relDir: string,
+    fileName: string,
+    stream: NodeJS.ReadableStream
+  ): Promise<string> {
+    const targetDir = this.resolveSafe(relDir);
+    if (!fs.existsSync(targetDir)) {
+      await fs.promises.mkdir(targetDir, { recursive: true });
+    }
+
+    const cleanName = path.basename(fileName);
+    const destination = path.join(targetDir, cleanName);
+
+    const writeStream = fs.createWriteStream(destination);
+    await new Promise<void>((resolve, reject) => {
+      stream.pipe(writeStream);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', (err) => {
+        try {
+          fs.unlinkSync(destination);
+        } catch {}
+        reject(err);
+      });
+      stream.on('error', (err) => {
+        try {
+          fs.unlinkSync(destination);
+        } catch {}
+        reject(err);
+      });
+    });
+
+    return '/' + path.relative(this.projectRoot, destination).replace(/\\/g, '/');
+  }
+
   public async createFolder(relDir: string, folderName: string): Promise<string> {
     const targetDir = this.resolveSafe(relDir);
     const cleanName = path.basename(folderName);

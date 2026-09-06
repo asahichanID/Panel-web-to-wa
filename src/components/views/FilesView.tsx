@@ -39,6 +39,7 @@ export const FilesView: React.FC = () => {
     readFile,
     saveFile,
     uploadFile,
+    uploadRawFile,
     createFolder,
     deleteFile,
     deleteMultipleFiles,
@@ -218,25 +219,8 @@ export const FilesView: React.FC = () => {
         const file = fileList[i];
         setUploadStatus(`Mengunggah (${i + 1}/${fileList.length}) ${file.name}...`);
 
-        const isText =
-          file.type.startsWith('text/') ||
-          file.name.endsWith('.js') ||
-          file.name.endsWith('.ts') ||
-          file.name.endsWith('.json') ||
-          file.name.endsWith('.md') ||
-          file.name.endsWith('.txt') ||
-          file.name.endsWith('.env') ||
-          file.name.endsWith('.html') ||
-          file.name.endsWith('.css');
-
-        if (isText) {
-          const text = await file.text();
-          await uploadFile(file.name, text, false);
-        } else {
-          // Fast native base64 without loop
-          const base64 = await readFileAsBase64(file);
-          await uploadFile(file.name, base64, true);
-        }
+        // Stream file directly to server - no base64 overhead, supports any file size
+        await uploadRawFile(file, currentDir);
       }
       setUploadStatus('Upload selesai!');
       showNotification(`Berhasil mengunggah ${fileList.length} file.`, 'success');
