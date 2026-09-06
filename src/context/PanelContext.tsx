@@ -531,14 +531,26 @@ async function parseResponseJsonOrError<T = any>(res: Response, fallbackMessage:
     formData.append('dir', dir);
     formData.append('file', file, file.name);
 
-    // Standard FormData to clean URL /api/files/upload
-    // - Avoids filename in query string which triggers Nginx static file 405 Method Not Allowed
-    // - CORS safelisted content-type (no preflight OPTIONS rejection)
-    // - Memory-efficient streaming directly to disk via multer
-    const res = await fetch('/api/files/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    // Primary: /api/upload (bypasses any Nginx /files/ static path rule)
+    let res: Response;
+    try {
+      res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok && (res.status === 404 || res.status === 405)) {
+        res = await fetch('/api/files/upload', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+    } catch {
+      res = await fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
+    }
+
     await parseResponseJsonOrError(res, 'Gagal mengunggah file');
     await fetchFiles(dir);
   }, [currentDir, fetchFiles]);

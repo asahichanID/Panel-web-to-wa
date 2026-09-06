@@ -60,7 +60,9 @@ async function startServer() {
   const httpServer = http.createServer(app);
 
   // Mount API routes FIRST
-  app.use('/api', createApiRouter(runner, storage, panelManager));
+  const apiRouter = createApiRouter(runner, storage, panelManager);
+  app.use('/api', apiRouter);
+  app.use('/upload', apiRouter);
 
   // Health check route
   app.get('/api/health', (req, res) => {

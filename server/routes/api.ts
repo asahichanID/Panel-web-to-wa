@@ -273,12 +273,19 @@ export function createApiRouter(
     }),
   });
 
-  // Unified file upload endpoint: handles FormData multipart (standard) & JSON payload
-  router.all('/files/upload', (req: Request, res: Response) => {
+  // Universal upload handler: supports FormData (multipart), octet-stream, and JSON
+  const handleUploadRequest = (req: Request, res: Response) => {
     if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Metode HTTP harus POST' });
+    if (req.method === 'GET') {
+      return res.json({ status: 'ok', message: 'Upload endpoint ready (use POST or PUT with FormData or JSON)' });
+    }
+    if (req.method !== 'POST' && req.method !== 'PUT') {
+      return res.status(405).json({ error: 'Gunakan metode POST atau PUT untuk mengunggah file' });
+    }
 
     const contentType = req.headers['content-type'] || '';
+
+    // 1. Multipart FormData (Standard Web browser file upload)
     if (contentType.includes('multipart/form-data')) {
       upload.single('file')(req, res, (err: any) => {
         if (err) {
@@ -297,7 +304,22 @@ export function createApiRouter(
       return;
     }
 
-    // JSON / Base64 fallback
+    // 2. Direct binary octet-stream
+    if (contentType.includes('application/octet-stream')) {
+      const dir = (req.query.dir as string) || (req.headers['x-target-dir'] as string) || '/';
+      const rawName =
+        (req.query.filename as string) ||
+        (req.headers['x-target-filename'] as string) ||
+        (req.headers['x-filename'] as string) ||
+        'uploaded-file';
+      const filename = decodeURIComponent(rawName);
+      storage.saveUploadedStream(dir, filename, req)
+        .then((savedPath) => res.json({ success: true, path: savedPath }))
+        .catch((err) => res.status(500).json({ error: err.message || 'Gagal mengunggah file stream' }));
+      return;
+    }
+
+    // 3. JSON / Base64 fallback
     try {
       const { dir = '/', filename, content, isBase64 = false } = req.body || {};
       if (!filename) return res.status(400).json({ error: 'Parameter filename wajib disertakan' });
@@ -311,31 +333,14 @@ export function createApiRouter(
     } catch (err: any) {
       res.status(500).json({ error: err.message || 'Gagal menyimpan file' });
     }
-  });
+  };
 
-  // Direct raw binary stream upload fallback
-  router.all('/files/upload-raw', async (req: Request, res: Response) => {
-    if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Metode HTTP harus POST' });
-
-    try {
-      const dir = (req.query.dir as string) || (req.headers['x-target-dir'] as string) || '/';
-      const rawName =
-        (req.query.filename as string) ||
-        (req.headers['x-target-filename'] as string) ||
-        (req.headers['x-filename'] as string) ||
-        'uploaded-file';
-      const filename = decodeURIComponent(rawName);
-      if (!filename) {
-        return res.status(400).json({ error: 'Parameter filename wajib disertakan' });
-      }
-
-      const savedPath = await storage.saveUploadedStream(dir, filename, req);
-      res.json({ success: true, path: savedPath });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Gagal mengunggah file' });
-    }
-  });
+  // Mount on /upload and /files/upload aliases to avoid Nginx /files/ routing conflicts
+  router.all('/upload', handleUploadRequest);
+  router.all('/upload/', handleUploadRequest);
+  router.all('/files/upload', handleUploadRequest);
+  router.all('/files/upload/', handleUploadRequest);
+  router.all('/files/upload-raw', handleUploadRequest);
 
   // Download file
   router.get('/files/download', (req: Request, res: Response) => {
