@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
+import fs from 'fs';
 import { StorageService } from './server/services/storageService.js';
 import { BotRunnerService } from './server/services/botRunner.js';
 import { PanelManagerService } from './server/services/panelManager.js';
@@ -33,7 +33,7 @@ async function startServer() {
 
   const httpServer = http.createServer(app);
 
-  // Mount API routes
+  // Mount API routes FIRST
   app.use('/api', createApiRouter(runner, storage, panelManager));
 
   // Health check route
@@ -46,18 +46,30 @@ async function startServer() {
     });
   });
 
-  // Vite dev middleware or production static
-  if (process.env.NODE_ENV !== 'production') {
+  // Determine production environment reliably in ESM and bundled CommonJS
+  const distPath = path.join(process.cwd(), 'dist');
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    (typeof __filename !== 'undefined' && __filename.includes('dist'));
+
+  if (!isProduction) {
+    // Dynamic import prevents vite from being required in production builds
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    // Serve static frontend assets built in dist/
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+
+    // Express 4 & 5 compatible SPA fallback
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api')) {
+        return res.sendFile(path.join(distPath, 'index.html'));
+      }
+      next();
     });
   }
 

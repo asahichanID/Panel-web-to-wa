@@ -354,9 +354,8 @@ export class BotRunnerService extends EventEmitter {
   /**
    * Terminate all processes belonging to the bot:
    * 1. Process group kill (-pid)
-   * 2. Subtree kill via pkill
-   * 3. Workspace CWD sweep: kills any background child/forked process in storage.projectRoot
-   * 4. Free up bot port (8085)
+   * 2. Direct process kill (pid)
+   * 3. Pure Node /proc sweep: kills any background child/forked process in storage.projectRoot
    */
   private async terminateAllBotProcesses(targetPid: number | null): Promise<void> {
     // Destroy stdio streams
@@ -392,35 +391,56 @@ export class BotRunnerService extends EventEmitter {
         process.kill(p, 'SIGKILL');
       } catch {}
 
-      // Subtree child kill
+      // Subtree child kill via pkill
       try {
         execSync(`pkill -KILL -P ${p} 2>/dev/null || true`, { stdio: 'ignore', timeout: 1500 });
       } catch {}
     }
 
-    // Workspace CWD sweep: Kill any orphaned background processes running inside projectRoot
+    // Pure Node /proc sweep: guarantees every single orphaned/child process running inside projectRoot is killed
     try {
       const projectDir = path.resolve(this.storage.projectRoot);
       const serverPid = process.pid;
       const parentPid = process.ppid;
 
-      const sweepCmd = `
-        for p in /proc/[0-9]*/cwd; do
-          target_dir=$(readlink -f "$p" 2>/dev/null)
-          if [ "$target_dir" = "${projectDir}" ]; then
-            proc_id=$(basename $(dirname "$p"))
-            if [ "$proc_id" != "${serverPid}" ] && [ "$proc_id" != "${parentPid}" ] && [ "$proc_id" != "1" ]; then
-              kill -9 "$proc_id" 2>/dev/null || true
-            fi
-          fi
-        done
-      `;
-      execSync(sweepCmd, { stdio: 'ignore', timeout: 2500 });
-    } catch {}
+      if (fs.existsSync('/proc')) {
+        const procEntries = fs.readdirSync('/proc');
+        for (const entry of procEntries) {
+          if (!/^\d+$/.test(entry)) continue;
+          const pidNum = parseInt(entry, 10);
+          if (pidNum === serverPid || pidNum === parentPid || pidNum <= 1) continue;
 
-    // Release port 8085 if bound by bot
-    try {
-      execSync('fuser -k -9 8085/tcp 2>/dev/null || true', { stdio: 'ignore', timeout: 1000 });
+          try {
+            let matches = false;
+            // Check process working directory
+            try {
+              const procCwd = fs.readlinkSync(`/proc/${entry}/cwd`);
+              if (procCwd === projectDir || procCwd.startsWith(projectDir + '/')) {
+                matches = true;
+              }
+            } catch {}
+
+            // Check command line
+            if (!matches) {
+              try {
+                const cmdline = fs.readFileSync(`/proc/${entry}/cmdline`, 'utf-8');
+                if (cmdline.includes('bot_project')) {
+                  matches = true;
+                }
+              } catch {}
+            }
+
+            if (matches) {
+              try {
+                process.kill(pidNum, 'SIGKILL');
+              } catch {}
+              try {
+                process.kill(-pidNum, 'SIGKILL');
+              } catch {}
+            }
+          } catch {}
+        }
+      }
     } catch {}
   }
 
